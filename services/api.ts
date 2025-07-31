@@ -63,6 +63,22 @@ const api = {
     });
     return handleResponse(response);
   },
+
+  async delete(endpoint: string) {
+    const response = await fetch(`${BASE_URL}/${endpoint}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  async startDmSession(sessionId: string) {
+    const response = await fetch(`${BASE_URL}/dm/session/${sessionId}/start`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
 };
 
 export default api;

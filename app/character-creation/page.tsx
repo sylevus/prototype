@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '../../services/api';
+import MarkdownDisplay from '../components/MarkdownDisplay';
 
 // A simple type for our chat messages
 type Message = {
@@ -72,70 +73,108 @@ export default function CharacterCreationPage() {
   };
 
   return (
-    <div className="flex flex-col w-full flex-grow p-4 h-full">
-      <header 
-        className="p-4 text-center shadow-md shrink-0"
-        style={{ backgroundColor: 'var(--surface)', color: 'var(--foreground)' }}
-      >
-        <h1 className="text-2xl font-bold">Negotiate Your Character with AI</h1>
+    <div className="flex flex-col w-full flex-grow h-full">
+      <header className="chrome-surface p-6 text-center shrink-0 mx-4 mt-4 rounded-t-2xl">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-samuel-off-white to-samuel-bright-red bg-clip-text text-transparent">
+          Negotiate Your Character with AI
+        </h1>
+        <p className="text-samuel-off-white/70 mt-2">Create your perfect RPG character through conversation</p>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-4 w-full">
-          {messages.map((message, index) => {
-            const formattedText = message.sender === 'ai' 
-              ? message.text
-                .replace(/^#### (.*$)/gm, '• $1')
-                .replace(/\n\n/g, '\n')
-              : message.text;
-
-            return (
-              <div
-                key={index}
-                className={`p-4 rounded-lg ${
-                  message.sender === 'user'
-                    ? 'bg-blue-900 text-white ml-auto'
-                    : 'bg-gray-800 text-white whitespace-pre-wrap'
-                }`}
-              >
-                {formattedText.split('\n').map((line, i) => (
-                  <div key={i} className="mb-1">
-                    {line || <br />}
-                  </div>
-                ))}
+      <main className="flex-1 overflow-y-auto p-4 chrome-surface mx-4 rounded-none">
+        <div className="space-y-6 w-full max-w-4xl mx-auto">
+          {messages.length === 0 && (
+            <div className="text-center py-16">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-samuel-bright-red to-samuel-dark-red flex items-center justify-center">
+                <svg className="w-10 h-10 text-samuel-off-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
               </div>
-            );
-          })}
+              <h3 className="text-xl font-semibold text-samuel-off-white mb-2">Start Your Character Creation</h3>
+              <p className="text-samuel-off-white/60">Begin the conversation to create your perfect RPG character</p>
+            </div>
+          )}
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`p-6 transition-all duration-300 ${
+                message.sender === 'user'
+                  ? 'chrome-chat-user text-samuel-off-white'
+                  : 'chrome-chat-ai text-samuel-off-white'
+              }`}
+            >
+              <div className="flex items-start space-x-3">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                  message.sender === 'user'
+                    ? 'bg-samuel-off-white/20'
+                    : 'bg-samuel-bright-red/20'
+                }`}>
+                  {message.sender === 'user' ? (
+                    <svg className="w-4 h-4 text-samuel-off-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 text-samuel-bright-red" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+                <div className="flex-1">
+                  {message.sender === 'ai' ? (
+                    <MarkdownDisplay content={message.text} />
+                  ) : (
+                    <div className="text-samuel-off-white whitespace-pre-wrap">
+                      {message.text}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </main>
 
-      <footer 
-        className="p-4 shrink-0"
-        style={{ backgroundColor: 'var(--surface)' }}
-      >
-        <div className="flex gap-2">
+      <footer className="chrome-surface p-6 shrink-0 mx-4 mb-4 rounded-b-2xl border-t border-white/5">
+        <div className="flex gap-3 max-w-4xl mx-auto">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            className="flex-1 p-2 rounded-lg bg-gray-700 text-white"
+            className="flex-1 chrome-input p-4 text-samuel-off-white placeholder-samuel-off-white/50"
             placeholder="Type your message..."
             disabled={isLoading}
           />
           <button 
             onClick={handleSend} 
             disabled={isLoading}
-            className="bg-blue-600 text-white p-2 rounded-lg disabled:bg-gray-500"
+            className="chrome-button px-6 py-4 text-samuel-off-white disabled:opacity-50 disabled:cursor-not-allowed min-w-[100px]"
           >
-            {isLoading ? 'Sending...' : 'Send'}
+            {isLoading ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-samuel-off-white border-t-transparent mr-2"></div>
+                Sending
+              </div>
+            ) : (
+              <div className="flex items-center">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+                Send
+              </div>
+            )}
           </button>
           <button 
             onClick={handleSaveCharacter} 
             disabled={isLoading || messages.length === 0}
-            className="bg-green-600 text-white p-2 rounded-lg disabled:bg-gray-500"
+            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-samuel-off-white px-6 py-4 rounded-xl font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-white/10 hover:shadow-lg hover:-translate-y-0.5 min-w-[140px]"
           >
-            Save Character
+            <div className="flex items-center">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              Save Character
+            </div>
           </button>
         </div>
       </footer>

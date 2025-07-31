@@ -33,11 +33,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
-        style={{ background: 'linear-gradient(to bottom, white 20%, black)' }}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-black text-samuel-off-white`}
       >
-        <Header />
-        <main className="flex-grow flex flex-col items-center justify-center">{children}</main>
+        <div className="flex flex-col min-h-screen">
+          <Header />
+          <main className="flex-grow">{children}</main>
+          <footer className="chrome-surface text-samuel-off-white text-center py-6 text-sm mx-4 mb-4 rounded-xl border border-white/10">
+            <div className="flex items-center justify-center space-x-2">
+              <svg className="w-4 h-4 text-samuel-bright-red" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+              </svg>
+              <span>© {new Date().getFullYear()} RPG Prototype - Crafted for Epic Adventures</span>
+            </div>
+          </footer>
+        </div>
       </body>
     </html>
   );

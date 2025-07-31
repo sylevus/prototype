@@ -36,21 +36,29 @@ export default function Home() {
 
   return (
     <GoogleOAuthProvider clientId={clientId}>
-      <div 
-        className="font-sans flex-grow w-full flex flex-col items-center justify-center"
-      >
-        <div 
-          className="flex flex-col gap-6 p-8 rounded-lg shadow-xl w-full max-w-md"
-          style={{ backgroundColor: 'var(--surface)', color: 'var(--foreground)' }}
-        >
-          <h1 className="text-3xl font-bold text-center">RPG Login</h1>
-          <p className="text-center">Sign in with your Google account to continue</p>
+      <div className="font-sans flex-grow w-full flex flex-col items-center justify-center p-8">
+        <div className="chrome-card flex flex-col gap-8 p-10 w-full max-w-md text-samuel-off-white">
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-samuel-bright-red to-samuel-dark-red flex items-center justify-center">
+              <svg className="w-8 h-8 text-samuel-off-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-samuel-off-white to-samuel-bright-red bg-clip-text text-transparent">
+              RPG Login
+            </h1>
+            <p className="text-samuel-off-white/80 text-lg">
+              Sign in with your Google account to continue your adventure
+            </p>
+          </div>
           <div className="flex justify-center">
-            <GoogleLogin
-              onSuccess={handleLoginSuccess}
-              onError={handleLoginError}
-              theme="filled_black"
-            />
+            <div className="p-2 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+              <GoogleLogin
+                onSuccess={handleLoginSuccess}
+                onError={handleLoginError}
+                theme="filled_black"
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -20,17 +20,19 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-gray-800 text-white p-4 flex justify-between items-center">
-      <Link href="/" className="text-xl font-bold">
-        RPG Character Creator
+    <header className="chrome-header text-samuel-off-white p-6 flex justify-between items-center sticky top-0 z-50">
+      <Link href="/" className="text-2xl font-bold hover:text-samuel-bright-red transition-all duration-300 tracking-wide hover:scale-105">
+        <span className="bg-gradient-to-r from-samuel-off-white to-samuel-bright-red bg-clip-text text-transparent">
+          RPG Character Creator
+        </span>
       </Link>
       <nav>
         {isLoggedIn ? (
-          <button onClick={handleLogout} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+          <button onClick={handleLogout} className="chrome-button text-samuel-off-white py-3 px-8">
             Logout
           </button>
         ) : (
-          <Link href="/" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          <Link href="/" className="chrome-button text-samuel-off-white py-3 px-8 inline-block">
             Login
           </Link>
         )}
