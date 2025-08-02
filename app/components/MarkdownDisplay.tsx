@@ -25,10 +25,12 @@ export default function MarkdownDisplay({ content, className = '' }: MarkdownDis
           blockquote: ({node, ...props}) => (
             <blockquote className="border-l-4 border-samuel-bright-red pl-4 text-samuel-off-white/80 italic mb-2" {...props} />
           ),
-          code: ({node, inline, ...props}) => 
-            inline 
+          code: ({node, ...props}: any) => {
+            const inline = !props.className?.includes('language-');
+            return inline 
               ? <code className="bg-samuel-dark-teal/20 text-samuel-off-white px-1 py-0.5 rounded text-sm" {...props} />
-              : <code className="bg-samuel-dark-teal/20 text-samuel-off-white p-2 rounded block text-sm" {...props} />,
+              : <code className="bg-samuel-dark-teal/20 text-samuel-off-white p-2 rounded block text-sm" {...props} />;
+          },
           hr: ({node, ...props}) => <hr className="border-samuel-off-white/20 my-4" {...props} />,
         }}
       >

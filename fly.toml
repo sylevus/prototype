@@ -1,0 +1,22 @@
+app = 'prototypes'
+primary_region = 'atl'
+
+[build]
+  [build.args]
+    NEXT_PUBLIC_API_URL = "https://grokapi.fly.dev/api"
+
+[env]
+  NEXT_PUBLIC_API_URL = "https://grokapi.fly.dev/api"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getSubscriptionStatus, canAccessPremiumFeatures, getSubscriptionDisplayName, getStatusDisplayName, getStatusColor, type SubscriptionStatus } from '@/utils/subscription';
 import api from '../../services/api';
 
 interface Character {
@@ -14,13 +15,18 @@ interface Character {
 export default function HomePage() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchCharacters = async () => {
+    const fetchData = async () => {
       try {
-        const data = await api.get('characters');
-        setCharacters(data);
+        const [charactersData, subscriptionData] = await Promise.all([
+          api.get('characters'),
+          getSubscriptionStatus()
+        ]);
+        setCharacters(charactersData);
+        setSubscription(subscriptionData);
       } catch (error) {
         console.error(error);
         router.push('/'); // Redirect to login on error (e.g., expired token)
@@ -29,7 +35,7 @@ export default function HomePage() {
       }
     };
 
-    fetchCharacters();
+    fetchData();
   }, []);
 
   const handleSelectCharacter = async (characterId: number) => {
@@ -71,6 +77,61 @@ export default function HomePage() {
           </h1>
           <div className="w-24 h-1 bg-gradient-to-r from-samuel-bright-red to-samuel-dark-red mx-auto rounded-full"></div>
         </div>
+
+        {/* Subscription Status Banner */}
+        {subscription && (
+          <div className="mb-8 chrome-surface p-4 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-samuel-off-white/80">Plan:</span>
+                  <span className="font-semibold text-samuel-off-white">
+                    {getSubscriptionDisplayName(subscription.tier)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-samuel-off-white/80">Status:</span>
+                  <span className={`font-semibold ${getStatusColor(subscription.status)}`}>
+                    {getStatusDisplayName(subscription.status)}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                {!canAccessPremiumFeatures(subscription) && (
+                  <Link 
+                    href="/subscription"
+                    className="chrome-button-secondary text-samuel-off-white py-2 px-4 text-sm"
+                  >
+                    Upgrade
+                  </Link>
+                )}
+                <Link 
+                  href="/subscription"
+                  className="chrome-button-secondary text-samuel-off-white py-2 px-4 text-sm"
+                >
+                  Manage
+                </Link>
+              </div>
+            </div>
+            
+            {subscription.status === 'Suspended' && (
+              <div className="mt-3 p-3 bg-red-600/20 border border-red-600/50 rounded-lg">
+                <p className="text-red-200 text-sm">
+                  ⚠️ Your account is suspended. Some features may be unavailable. Please check your subscription settings.
+                </p>
+              </div>
+            )}
+            
+            {subscription.status === 'PastDue' && (
+              <div className="mt-3 p-3 bg-yellow-600/20 border border-yellow-600/50 rounded-lg">
+                <p className="text-yellow-200 text-sm">
+                  ⚠️ Your payment is overdue. Please update your payment method to continue using premium features.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
         
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -108,13 +169,8 @@ export default function HomePage() {
                     </h3>
                   </div>
                   <div className="space-y-2 text-samuel-off-white/70">
-                    <p className="flex justify-between">
-                      <span>Class:</span> 
-                      <span className="font-semibold text-samuel-off-white">{char.class}</span>
-                    </p>
-                    <p className="flex justify-between">
-                      <span>Level:</span> 
-                      <span className="font-semibold text-samuel-bright-red">{char.level}</span>
+                    <p className="text-sm">
+                      Ready for adventure
                     </p>
                   </div>
                   <div className="mt-4 pt-4 border-t border-white/10">

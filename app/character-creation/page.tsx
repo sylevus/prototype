@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '../../services/api';
 import MarkdownDisplay from '../components/MarkdownDisplay';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 // A simple type for our chat messages
 type Message = {
@@ -131,6 +132,22 @@ export default function CharacterCreationPage() {
               </div>
             </div>
           ))}
+          
+          {/* AI thinking indicator */}
+          {isLoading && (
+            <div className="p-6 chrome-chat-ai text-samuel-off-white">
+              <div className="flex items-start space-x-3">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-samuel-bright-red/20">
+                  <svg className="w-4 h-4 text-samuel-bright-red" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <LoadingSpinner message="AI is thinking..." size="md" />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
@@ -151,10 +168,7 @@ export default function CharacterCreationPage() {
             className="chrome-button px-6 py-4 text-samuel-off-white disabled:opacity-50 disabled:cursor-not-allowed min-w-[100px]"
           >
             {isLoading ? (
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-samuel-off-white border-t-transparent mr-2"></div>
-                Sending
-              </div>
+              <LoadingSpinner message="Sending" size="sm" />
             ) : (
               <div className="flex items-center">
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
