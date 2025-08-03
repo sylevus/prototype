@@ -4,7 +4,6 @@ primary_region = 'atl'
 
 [env]
   NEXT_PUBLIC_API_URL = "https://grokapi.fly.dev/api"
-  NEXT_PUBLIC_GOOGLE_CLIENT_ID = "509405291776-3okmqhk0rlhiblo58nso00r5bbho1925.apps.googleusercontent.com"
 
 [http_service]
   internal_port = 3000
