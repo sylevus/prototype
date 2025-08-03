@@ -67,7 +67,8 @@ export default function Home() {
     }
   };
 
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  // Hardcode the client ID for now to fix the deployment issue
+  const clientId = "509405291776-3okmqhk0rlhiblo58nso00r5bbho1925.apps.googleusercontent.com";
 
   if (!clientId) {
     console.error("Google Client ID is not defined. Please check your .env.local file.");
