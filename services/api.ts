@@ -181,6 +181,23 @@ const api = {
     });
     return handleResponse(response);
   },
+
+  async getApiProvider() {
+    const response = await fetch(`${BASE_URL}/admin/api-provider`, {
+      method: 'GET',
+      headers: await getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  async setApiProvider(provider: number) {
+    const response = await fetch(`${BASE_URL}/admin/api-provider/set`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({ provider }),
+    });
+    return handleResponse(response);
+  },
 };
 
 export default api;

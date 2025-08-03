@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import api from '../../../services/api';
 import MarkdownDisplay from '../../components/MarkdownDisplay';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import ApiProviderSelector from '../../components/ApiProviderSelector';
 
 interface Message {
   sender: string;
@@ -93,14 +94,35 @@ export default function SessionPage() {
             
             console.log(`Loaded ${historicalSubmissions.length} historical submissions, set to latest (#${historicalSubmissions.length})`);
           } else {
-            // No history found, initialize with session summary if available
-            if (sessionData.summary) {
-              setNarrativeHistory([{ 
-                type: 'narrative', 
-                content: sessionData.summary,
-                timestamp: new Date()
-              }]);
-            }
+            // No history found, auto-start session
+            console.log('No session history found, auto-starting session...');
+            setTimeout(() => {
+              setIsSessionStarted(false); // Ensure we show the start flow
+              // Auto-start the session after a brief delay
+              setTimeout(async () => {
+                try {
+                  const result = await api.startDmSession(sessionData.sessionId);
+                  const narrativeEvent = {
+                    type: 'narrative' as const,
+                    content: result.narrative,
+                    timestamp: new Date()
+                  };
+                  setNarrativeHistory([narrativeEvent]);
+                  setIsSessionStarted(true);
+                  setSession(prev => prev ? { ...prev, summary: result.narrative } : null);
+                } catch (err: any) {
+                  console.error('Auto-start failed:', err);
+                  // Fallback to manual start
+                  if (sessionData.summary) {
+                    setNarrativeHistory([{ 
+                      type: 'narrative', 
+                      content: sessionData.summary,
+                      timestamp: new Date()
+                    }]);
+                  }
+                }
+              }, 1000);
+            }, 100);
           }
         } catch (historyErr: any) {
           console.log('No session history found, starting fresh:', historyErr.message);
@@ -167,6 +189,7 @@ export default function SessionPage() {
     if (!playerInput.trim() || !session || isSubmittingAction) return;
 
     const currentInput = playerInput;
+    console.log('🎲 Starting action submission, showing loading animation...');
     setIsSubmittingAction(true);
     setPlayerInput('');
 
@@ -221,6 +244,7 @@ export default function SessionPage() {
       
       setCurrentSubmission(Math.min(submissions.length + 1, maxSubmissionsToKeep));
     } finally {
+      console.log('🎲 Action submission complete, hiding loading animation...');
       setIsSubmittingAction(false);
     }
   };
@@ -349,7 +373,7 @@ export default function SessionPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-100px)] bg-black overflow-hidden">
+    <div className="flex h-screen bg-black overflow-hidden pt-16">
       {/* Main Content - Use full calculated height */}
       <div className="flex flex-1 min-h-0 bg-black">
         {/* Left Panel: Game Interaction - Optimized height usage */}
@@ -371,34 +395,27 @@ export default function SessionPage() {
                   <p className="text-xs text-samuel-off-white/60">Adventure Session</p>
                 </div>
               </div>
-              {isSessionStarted && (
-                <div className="text-xs text-samuel-off-white/50 flex items-center space-x-1">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                  <span>Active</span>
-                </div>
-              )}
+              <div className="flex items-center space-x-3">
+                <ApiProviderSelector />
+                {isSessionStarted && (
+                  <div className="text-xs text-samuel-off-white/50 flex items-center space-x-1">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span>Active</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {!isSessionStarted ? (
               <div className="flex-1 flex flex-col items-center justify-center">
                 <div className="text-center space-y-4">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-samuel-bright-red to-samuel-dark-red flex items-center justify-center">
-                    <svg className="w-8 h-8 text-samuel-off-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-5-4v4h2v-4m-2 0V9a1 1 0 011-1h2a1 1 0 011 1v1m-4 0h4" />
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-samuel-bright-red to-samuel-dark-red flex items-center justify-center animate-pulse">
+                    <svg className="w-8 h-8 text-samuel-off-white animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                   </div>
-                  <p className="text-samuel-off-white text-lg mb-4">Ready to begin your adventure?</p>
-                  <button
-                    onClick={handleStartSession}
-                    disabled={isStartingSession}
-                    className="chrome-button px-8 py-3 text-samuel-off-white text-lg disabled:opacity-50 disabled:cursor-not-allowed min-w-[180px]"
-                  >
-                    {isStartingSession ? (
-                      <LoadingSpinner message="Starting..." size="sm" />
-                    ) : (
-                      "Begin Session"
-                    )}
-                  </button>
+                  <p className="text-samuel-off-white text-lg mb-4">Starting your adventure...</p>
+                  <LoadingSpinner message="The DM is preparing your story" size="lg" />
                 </div>
               </div>
             ) : (
@@ -432,17 +449,27 @@ export default function SessionPage() {
                   </>
                 )}
                 
+                {/* Debug state indicator (remove in production) */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="text-xs text-samuel-off-white/40 px-2 py-1">
+                    Loading State: {isSubmittingAction ? 'ACTIVE' : 'IDLE'}
+                  </div>
+                )}
+                
                 {/* AI thinking indicator */}
                 {isSubmittingAction && (
-                  <div className="chrome-card p-4 border-l-4 border-samuel-off-white/20">
-                    <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 rounded-full bg-samuel-off-white/20 flex items-center justify-center shrink-0">
-                        <svg className="w-3 h-3 text-samuel-off-white" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="chrome-card p-6 border-l-4 border-samuel-bright-red bg-gradient-to-r from-samuel-dark-red/20 to-transparent animate-pulse">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-8 h-8 rounded-full bg-samuel-bright-red/20 flex items-center justify-center shrink-0 mystic-glow">
+                        <svg className="w-4 h-4 text-samuel-bright-red animate-pulse" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                         </svg>
                       </div>
                       <div className="flex-1">
-                        <LoadingSpinner message="The DM is crafting your story..." size="md" />
+                        <LoadingSpinner message="The DM is crafting your story..." size="lg" />
+                      </div>
+                      <div className="text-samuel-off-white/60 text-xs animate-pulse">
+                        AI Processing...
                       </div>
                     </div>
                   </div>
@@ -452,7 +479,7 @@ export default function SessionPage() {
 
             {/* Submission Navigation Controls */}
             {isSessionStarted && totalSubmissions > 1 && (
-              <div className="shrink-0 flex items-center justify-between py-2 px-4 bg-black/50 border-t border-white/10">
+              <div className="shrink-0 flex items-center justify-between py-3 px-4 mt-2 bg-gradient-to-r from-samuel-dark-red/10 to-samuel-darker-red/10 backdrop-blur-sm border border-white/5 rounded-b-2xl -mx-4 -mb-4">
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => goToSubmission(1)}
