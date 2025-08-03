@@ -1,9 +1,6 @@
 app = 'prototypes'
 primary_region = 'atl'
 
-[build]
-  [build.args]
-    NEXT_PUBLIC_API_URL = "https://grokapi.fly.dev/api"
 
 [env]
   NEXT_PUBLIC_API_URL = "https://grokapi.fly.dev/api"
