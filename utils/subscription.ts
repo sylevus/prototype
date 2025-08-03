@@ -38,10 +38,34 @@ export const SubscriptionStatuses = {
 
 export const getSubscriptionStatus = async (): Promise<SubscriptionStatus | null> => {
   try {
+    // Check if user is authenticated first
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('No authentication token found, skipping subscription check');
+      return {
+        hasSubscription: false,
+        tier: 'Free',
+        status: 'None',
+        isAdminGranted: false
+      };
+    }
+
     const response = await api.get('subscription/status');
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to get subscription status:', error);
+    
+    // If it's a 401, user is not properly authenticated - return default free status
+    if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+      console.log('Authentication failed for subscription check, returning free tier');
+      return {
+        hasSubscription: false,
+        tier: 'Free',
+        status: 'None',
+        isAdminGranted: false
+      };
+    }
+    
     return null;
   }
 };

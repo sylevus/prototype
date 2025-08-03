@@ -15,6 +15,8 @@ const AdminPanel = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [showUserManagement, setShowUserManagement] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [pdfSessionId, setPdfSessionId] = useState('');
+  const [pdfGenerating, setPdfGenerating] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -129,6 +131,56 @@ const AdminPanel = () => {
     }
   };
 
+  const generatePdf = async (testMode = false) => {
+    if (!pdfSessionId.trim()) {
+      alert('Please enter a session ID');
+      return;
+    }
+
+    try {
+      setPdfGenerating(true);
+      
+      // Choose endpoint based on test mode
+      const endpoint = testMode 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/auth/admin/test-pdf/${pdfSessionId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/auth/admin/generate-pdf/${pdfSessionId}`;
+      
+      // Make API call to generate PDF
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.error('PDF generation error:', errorData);
+        throw new Error(errorData.message || `HTTP ${response.status}`);
+      }
+
+      // Handle PDF download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = testMode ? `test-${pdfSessionId}.pdf` : `admin-story-${pdfSessionId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      alert(`${testMode ? 'Test' : 'Story'} PDF generated and downloaded successfully!`);
+      setPdfSessionId('');
+    } catch (error: any) {
+      console.error('PDF generation failed:', error);
+      alert(`Failed to generate PDF: ${error.message}`);
+    } finally {
+      setPdfGenerating(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen chrome-gradient flex items-center justify-center">
@@ -160,7 +212,7 @@ const AdminPanel = () => {
           </div>
 
           {/* Admin Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             
             {/* System Status Card */}
             <div className="chrome-panel p-6">
@@ -219,6 +271,37 @@ const AdminPanel = () => {
                 <button className="w-full chrome-button-secondary text-samuel-off-white py-2 px-4 text-sm">
                   Database Backup
                 </button>
+              </div>
+            </div>
+
+            {/* PDF Generation Card */}
+            <div className="chrome-panel p-6">
+              <h2 className="text-xl font-semibold text-samuel-off-white mb-4">PDF Generation</h2>
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={pdfSessionId}
+                  onChange={(e) => setPdfSessionId(e.target.value)}
+                  placeholder="Enter session ID"
+                  className="w-full bg-black/30 border border-samuel-off-white/20 rounded px-3 py-2 text-samuel-off-white text-sm focus:border-samuel-bright-red focus:outline-none"
+                />
+                <button 
+                  onClick={() => generatePdf(false)}
+                  disabled={pdfGenerating || !pdfSessionId.trim()}
+                  className="w-full chrome-button text-samuel-off-white py-2 px-4 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {pdfGenerating ? 'Generating...' : 'Generate Story PDF'}
+                </button>
+                <button 
+                  onClick={() => generatePdf(true)}
+                  disabled={pdfGenerating || !pdfSessionId.trim()}
+                  className="w-full chrome-button-secondary text-samuel-off-white py-2 px-4 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Test PDF Generation
+                </button>
+                <div className="text-xs text-samuel-off-white/60">
+                  Generate and download a story PDF for any session
+                </div>
               </div>
             </div>
           </div>

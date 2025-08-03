@@ -21,14 +21,26 @@ export default function HomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [charactersData, subscriptionData] = await Promise.all([
-          api.get('characters'),
-          getSubscriptionStatus()
-        ]);
+        // Fetch characters first - this is critical
+        const charactersData = await api.get('characters');
         setCharacters(charactersData);
-        setSubscription(subscriptionData);
+        
+        // Fetch subscription status separately - this is non-critical
+        try {
+          const subscriptionData = await getSubscriptionStatus();
+          setSubscription(subscriptionData);
+        } catch (subscriptionError) {
+          console.warn('Failed to load subscription status, using default:', subscriptionError);
+          // Set default free subscription if it fails
+          setSubscription({
+            hasSubscription: false,
+            tier: 'Free',
+            status: 'None',
+            isAdminGranted: false
+          });
+        }
       } catch (error) {
-        console.error(error);
+        console.error('Failed to load characters:', error);
         router.push('/'); // Redirect to login on error (e.g., expired token)
       } finally {
         setIsLoading(false);

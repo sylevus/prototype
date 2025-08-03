@@ -8,6 +8,7 @@ import { hasAdministratorRole, isTokenValid } from '@/utils/auth';
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const router = useRouter();
 
   const checkAuthState = () => {
@@ -38,8 +39,14 @@ const Header = () => {
       checkAuthState();
     };
 
+    // Close menu when clicking outside
+    const handleClickOutside = () => {
+      setShowMenu(false);
+    };
+
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('tokenChanged', handleTokenChange);
+    window.addEventListener('click', handleClickOutside);
 
     // Check auth state periodically to handle token expiration
     const interval = setInterval(checkAuthState, 60000); // Check every minute
@@ -47,6 +54,7 @@ const Header = () => {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('tokenChanged', handleTokenChange);
+      window.removeEventListener('click', handleClickOutside);
       clearInterval(interval);
     };
   }, []);
@@ -71,42 +79,67 @@ const Header = () => {
   };
 
   return (
-    <header className="chrome-header text-samuel-off-white p-6 flex justify-between items-center sticky top-0 z-50">
+    <header className="fixed top-4 left-4 right-4 z-50 flex justify-between items-center">
       <Link 
         href={isLoggedIn ? "/home" : "/"} 
-        className="text-2xl font-bold hover:text-samuel-bright-red transition-all duration-300 tracking-wide hover:scale-105"
+        className="chrome-surface p-2 rounded-lg backdrop-blur-md hover:bg-samuel-dark-red/20 transition-all duration-300"
       >
-        <span className="bg-gradient-to-r from-samuel-off-white to-samuel-bright-red bg-clip-text text-transparent">
-          RPG Character Creator
+        <span className="text-sm font-bold bg-gradient-to-r from-samuel-off-white to-samuel-bright-red bg-clip-text text-transparent">
+          RPG Creator
         </span>
       </Link>
-      <nav className="flex items-center gap-4">
-        {isLoggedIn ? (
-          <>
-            <Link 
-              href="/subscription" 
-              className="chrome-button-secondary text-samuel-off-white py-2 px-6 inline-block text-sm"
-            >
-              Subscription
-            </Link>
-            {isAdmin && (
+      
+      <div className="relative">
+        <button 
+          onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
+          className="chrome-surface p-2 rounded-lg backdrop-blur-md hover:bg-samuel-dark-red/20 transition-all duration-300 text-samuel-off-white"
+          title="Menu"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        
+        {/* Hamburger Menu */}
+        {showMenu && (
+          <div className="absolute right-0 top-12 chrome-card-fantasy p-2 min-w-[150px]" onClick={(e) => e.stopPropagation()}>
+            {isLoggedIn ? (
+              <>
+                <Link 
+                  href="/subscription" 
+                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-samuel-dark-red/20 transition-all duration-300 text-sm text-samuel-off-white w-full"
+                  onClick={() => setShowMenu(false)}
+                >
+                  💳 Subscription
+                </Link>
+                {isAdmin && (
+                  <Link 
+                    href="/admin" 
+                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-red-600/20 transition-all duration-300 text-sm text-samuel-off-white border-l-2 border-red-500/50 w-full"
+                    onClick={() => setShowMenu(false)}
+                  >
+                    🛡️ Admin
+                  </Link>
+                )}
+                <button 
+                  onClick={() => { handleLogout(); setShowMenu(false); }}
+                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-samuel-dark-red/20 transition-all duration-300 text-sm text-samuel-off-white w-full text-left"
+                >
+                  🚪 Logout
+                </button>
+              </>
+            ) : (
               <Link 
-                href="/admin" 
-                className="chrome-button-secondary text-samuel-off-white py-2 px-6 inline-block text-sm bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 border border-red-500"
+                href="/" 
+                className="flex items-center gap-2 p-2 rounded-lg hover:bg-samuel-dark-red/20 transition-all duration-300 text-sm text-samuel-off-white w-full"
+                onClick={() => setShowMenu(false)}
               >
-                🛡️ Admin
+                🔑 Login
               </Link>
             )}
-            <button onClick={handleLogout} className="chrome-button text-samuel-off-white py-3 px-8">
-              Logout
-            </button>
-          </>
-        ) : (
-          <Link href="/" className="chrome-button text-samuel-off-white py-3 px-8 inline-block">
-            Login
-          </Link>
+          </div>
         )}
-      </nav>
+      </div>
     </header>
   );
 };
